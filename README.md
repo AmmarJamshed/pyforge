@@ -30,7 +30,7 @@
 ```
 
 1. User submits code + target platform.
-2. Backend calls Groq (`llama-3.3-70b-versatile` with fallback to `mixtral-8x7b-32768`).
+2. Backend calls Groq (`llama-3.3-70b-versatile` with fallback to `llama-3.1-70b-versatile`).
 3. AI returns build-ready code + config files.
 4. Backend packs sources, mounts into a **builder image**, streams stdout to WebSocket.
 5. Artifact is served from `/api/build/{id}/download` until TTL cleanup.

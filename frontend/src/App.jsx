@@ -8,26 +8,12 @@ import {
 import BuildTerminal from './components/BuildTerminal';
 import CodeEditor from './components/CodeEditor';
 import TargetSelector from './components/TargetSelector';
-
-const DEFAULT_CODE = `"""Hello from PyForge — edit and build!"""
-import sys
-
-
-def main():
-    name = "World"
-    if len(sys.argv) > 1:
-        name = sys.argv[1]
-    print(f"Hello, {name}!")
-
-
-if __name__ == "__main__":
-    main()
-`;
+import { DEFAULT_SAMPLE, SAMPLES } from './samples';
 
 export default function App() {
-  const [code, setCode] = useState(DEFAULT_CODE);
+  const [code, setCode] = useState(DEFAULT_SAMPLE.code);
   const [target, setTarget] = useState('desktop_windows');
-  const [appName, setAppName] = useState('MyApp');
+  const [appName, setAppName] = useState(DEFAULT_SAMPLE.appName);
   const [building, setBuilding] = useState(false);
   const [jobId, setJobId] = useState(null);
   const [status, setStatus] = useState(null);
@@ -41,9 +27,17 @@ export default function App() {
     fetchSampleCode()
       .then((data) => {
         if (data?.code) setCode(data.code);
+        if (data?.app_name) setAppName(data.app_name);
       })
       .catch(() => {});
   }, []);
+
+  const loadSample = (sampleId) => {
+    const sample = SAMPLES[sampleId];
+    if (!sample) return;
+    setCode(sample.code);
+    setAppName(sample.appName);
+  };
 
   const handleBuild = useCallback(async () => {
     setError(null);
@@ -123,14 +117,29 @@ export default function App() {
             Paste Python. Ship native apps.
           </h2>
           <p className="text-slate-400 text-sm sm:text-base">
-            Groq AI analyzes your code, fixes platform issues, generates build configs, and runs
-            sandboxed builds in Docker. Your API key stays on the server.
+            AI analyzes your code, fixes platform issues, and generates build configs (Gemini,
+            OpenAI, OpenRouter, Ollama, or Groq). API keys stay on the server.
           </p>
         </section>
 
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
             <div className="flex flex-wrap items-center gap-3">
+              <label className="text-sm text-slate-400">
+                Sample
+                <select
+                  className="ml-2 px-3 py-1.5 rounded-md bg-slate-800 border border-slate-600 text-sm text-white"
+                  defaultValue="quickcalc"
+                  onChange={(e) => loadSample(e.target.value)}
+                  disabled={building}
+                >
+                  {Object.values(SAMPLES).map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
               <label className="text-sm text-slate-400">
                 App name
                 <input

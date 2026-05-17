@@ -4,9 +4,20 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
+    # AI provider: groq | openai | openrouter | ollama | gemini
+    ai_provider: str = "groq"
+    ai_max_input_chars: int = 8000
+
     groq_api_key: str = ""
     groq_model: str = "llama-3.3-70b-versatile"
     groq_fallback_model: str = "llama-3.1-70b-versatile"
+
+    openai_api_key: str = ""
+    openai_base_url: str = "https://api.openai.com/v1"
+    openai_model: str = "gpt-4o-mini"
+
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-2.0-flash"
 
     artifacts_dir: str = "/app/artifacts"
     artifact_ttl_seconds: int = 3600

@@ -6,7 +6,7 @@ from app.build.bundle_artifact import create_source_bundle
 from app.build.docker_runner import run_docker_build
 from app.config import settings
 from app.models import BuildStatus, BuildTarget
-from app.services.groq_service import process_code_with_ai
+from app.services.ai_service import process_code_with_ai, provider_display_name
 from app.services.job_manager import BuildJob, job_manager
 
 
@@ -18,8 +18,9 @@ async def execute_build_pipeline(
 ) -> None:
     try:
         job.status = BuildStatus.AI_PROCESSING
-        job.message = "Analyzing and fixing code with Groq AI..."
-        job.append_log("Sending code to Groq for analysis...")
+        provider = provider_display_name()
+        job.message = f"Analyzing and fixing code with {provider}..."
+        job.append_log(f"Sending code to {provider} for analysis...")
 
         processed = await process_code_with_ai(code, target, app_name)
         job.append_log(f"AI processing complete: {processed.notes[:500]}")

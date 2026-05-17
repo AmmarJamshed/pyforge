@@ -8,23 +8,12 @@ from fastapi.responses import FileResponse
 
 from app.build.pipeline import schedule_build
 from app.config import settings
+from app.demo_samples import DEFAULT_SAMPLE, SAMPLES
 from app.models import BuildJobResponse, BuildRequest, BuildStatus
+from app.services.ai_service import ai_configured
 from app.services.job_manager import job_manager
 
-SAMPLE_CODE = '''"""Sample PyForge app - prints a greeting."""
-import sys
-
-
-def main():
-    name = "PyForge"
-    if len(sys.argv) > 1:
-        name = sys.argv[1]
-    print(f"Hello from {name}!")
-
-
-if __name__ == "__main__":
-    main()
-'''
+SAMPLE_CODE = SAMPLES[DEFAULT_SAMPLE]["code"]
 
 
 @asynccontextmanager
@@ -56,13 +45,46 @@ app.add_middleware(
 async def health():
     return {
         "status": "ok",
+        "ai_provider": settings.ai_provider,
+        "ai_configured": ai_configured(),
         "groq_configured": bool(settings.groq_api_key),
     }
 
 
+@app.get("/api/ai-providers")
+async def ai_providers():
+    return {
+        "current": settings.ai_provider,
+        "configured": ai_configured(),
+        "options": [
+            {"id": "gemini", "name": "Google Gemini", "env": ["GEMINI_API_KEY"], "note": "Free tier at aistudio.google.com"},
+            {"id": "openrouter", "name": "OpenRouter", "env": ["OPENAI_API_KEY", "OPENAI_MODEL"], "note": "Many models, some free"},
+            {"id": "openai", "name": "OpenAI", "env": ["OPENAI_API_KEY"], "note": "GPT-4o-mini etc."},
+            {"id": "ollama", "name": "Ollama (local)", "env": ["OPENAI_BASE_URL"], "note": "Free, self-hosted only"},
+            {"id": "groq", "name": "Groq", "env": ["GROQ_API_KEY"], "note": "Fast; strict free-tier token limits"},
+        ],
+    }
+
+
 @app.get("/api/sample-code")
-async def sample_code():
-    return {"code": SAMPLE_CODE}
+async def sample_code(sample: str = DEFAULT_SAMPLE):
+    entry = SAMPLES.get(sample) or SAMPLES[DEFAULT_SAMPLE]
+    return {
+        "code": entry["code"],
+        "app_name": entry["app_name"],
+        "name": entry["name"],
+        "sample_id": sample if sample in SAMPLES else DEFAULT_SAMPLE,
+    }
+
+
+@app.get("/api/samples")
+async def list_samples():
+    return {
+        "samples": [
+            {"id": sid, "name": meta["name"], "app_name": meta["app_name"]}
+            for sid, meta in SAMPLES.items()
+        ]
+    }
 
 
 @app.post("/api/build", response_model=BuildJobResponse)
@@ -70,8 +92,11 @@ async def start_build(request: BuildRequest):
     if len(request.code) > settings.max_code_length:
         raise HTTPException(status_code=400, detail="Code exceeds maximum length.")
 
-    if not settings.groq_api_key:
-        raise HTTPException(status_code=503, detail="GROQ_API_KEY not configured on server.")
+    if not ai_configured():
+        raise HTTPException(
+            status_code=503,
+            detail=f"AI provider '{settings.ai_provider}' is not configured. Set API keys on the server.",
+        )
 
     job = job_manager.create_job(request.target)
     job.append_log(f"Build queued: {request.target.value} / {request.app_name}")
