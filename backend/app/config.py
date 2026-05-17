@@ -6,7 +6,7 @@ class Settings(BaseSettings):
 
     groq_api_key: str = ""
     groq_model: str = "llama-3.3-70b-versatile"
-    groq_fallback_model: str = "mixtral-8x7b-32768"
+    groq_fallback_model: str = "llama-3.1-70b-versatile"
 
     artifacts_dir: str = "/app/artifacts"
     artifact_ttl_seconds: int = 3600

@@ -66,10 +66,25 @@ async def process_code_with_ai(code: str, target: BuildTarget, app_name: str) ->
         f"User Python code:\n```python\n{code}\n```"
     )
 
-    models = [settings.groq_model, settings.groq_fallback_model, "llama3-70b-8192"]
+    # Only currently supported Groq models (llama3-70b-8192 is decommissioned).
+    default_models = [
+        "llama-3.3-70b-versatile",
+        "llama-3.1-70b-versatile",
+        "mixtral-8x7b-32768",
+        "llama-3.1-8b-instant",
+    ]
+    deprecated = {"llama3-70b-8192", "llama3-8b-8192"}
+
+    candidates = [
+        settings.groq_model,
+        settings.groq_fallback_model,
+        *default_models,
+    ]
+    models = [m for m in dict.fromkeys(c for c in candidates if c) if m not in deprecated]
+
     last_error: Exception | None = None
 
-    for model in dict.fromkeys(models):
+    for model in models:
         try:
             completion = client.chat.completions.create(
                 model=model,
@@ -83,6 +98,9 @@ async def process_code_with_ai(code: str, target: BuildTarget, app_name: str) ->
             content = completion.choices[0].message.content or ""
             return _parse_ai_response(content)
         except Exception as exc:
+            err = str(exc).lower()
+            if "decommissioned" in err or "model_decommissioned" in err:
+                continue
             last_error = exc
             continue
 
