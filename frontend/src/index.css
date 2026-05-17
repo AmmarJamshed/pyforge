@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply min-h-screen;
+  }
+}
+
+/* Monaco editor container */
+.monaco-wrapper .monaco-editor {
+  border-radius: 0.5rem;
+}

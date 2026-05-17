@@ -1,0 +1,33 @@
+# Production overrides — use with: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: pyforge-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - pyforge
+
+  frontend:
+    ports: []  # only exposed via Caddy
+
+  backend:
+    environment:
+      - DOCKER_BUILDS_ENABLED=true
+      - CORS_ORIGINS=https://${DOMAIN:-localhost},http://${DOMAIN:-localhost}
+
+volumes:
+  caddy_data:
+  caddy_config:

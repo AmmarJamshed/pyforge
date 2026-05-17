@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Environment (never commit real API keys)
+.env
+
+# Build artifacts
+artifacts/
+backend/artifacts/
+*.tar.gz
+
+# IDE / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
+
+# Frontend build
+frontend/dist/
