@@ -41,6 +41,12 @@
 - Groq API key ([console.groq.com](https://console.groq.com))
 - **iOS IPA**: macOS host with Xcode + [kivy-ios](https://github.com/kivy/kivy-ios) (documented limitation)
 
+## Deploy online
+
+See **[DEPLOY.md](DEPLOY.md)** for Render (free), VPS (full Docker builds), and GitHub Pages.
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+
 ## Quick start (Docker Compose)
 
 ```bash
